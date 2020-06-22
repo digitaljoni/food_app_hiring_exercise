@@ -5,25 +5,12 @@ import 'package:food_delivery/blocs/restaurant/bloc/restaurants_bloc.dart';
 import 'package:food_delivery/config.dart';
 import 'package:food_delivery/data/providers/remote_restaurants_data_provider.dart';
 import 'package:food_delivery/data/respositories/restaurants_repository.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:http/http.dart';
 
 void main() {
   runApp(MyHomePage());
 }
-
-// class MyApp extends StatelessWidget {
-//   @override
-//   Widget build(BuildContext context) {
-//     return MaterialApp(
-//       title: 'Flutter Demo',
-//       theme: ThemeData(
-//         primarySwatch: Colors.blue,
-//         visualDensity: VisualDensity.adaptivePlatformDensity,
-//       ),
-//       home: Home(),
-//     );
-//   }
-// }
 
 class MyHomePage extends StatefulWidget {
   MyHomePage({Key key}) : super(key: key);
@@ -39,6 +26,8 @@ class _MyHomePageState extends State<MyHomePage> {
   RestaurantsRepository restaurantsRepository;
   RestaurantsBloc restaurantsBloc;
 
+  final Geolocator _geolocator = Geolocator();
+
   Widget _buildMaterialApp() {
     return MaterialApp(
       title: 'Flutter Demo',
@@ -48,6 +37,17 @@ class _MyHomePageState extends State<MyHomePage> {
       ),
       home: Home(),
     );
+  }
+
+  Future<void> _fetchNearbyRestaurants() async {
+    final Position currentPosition = await _geolocator.getCurrentPosition(
+        desiredAccuracy: LocationAccuracy.high);
+
+    final String latitude = '${currentPosition.latitude}';
+    final String longitude = '${currentPosition.longitude}';
+
+    restaurantsBloc
+        .add(FetchNearbyRestaurants(latitude: latitude, longitude: longitude));
   }
 
   @override
@@ -63,8 +63,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
     restaurantsBloc = RestaurantsBloc(repository: restaurantsRepository);
 
-    restaurantsBloc.add(FetchNearbyRestaurants(
-        latitude: '14.5544485', longitude: '121.0458726'));
+    _fetchNearbyRestaurants();
   }
 
   @override
