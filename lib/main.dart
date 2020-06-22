@@ -1,13 +1,45 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:food_delivery/Home.dart';
+import 'package:food_delivery/blocs/restaurant/bloc/restaurants_bloc.dart';
+import 'package:food_delivery/config.dart';
+import 'package:food_delivery/data/providers/remote_restaurants_data_provider.dart';
+import 'package:food_delivery/data/respositories/restaurants_repository.dart';
+import 'package:http/http.dart';
 
 void main() {
-  runApp(MyApp());
+  runApp(MyHomePage());
 }
 
-class MyApp extends StatelessWidget {
+// class MyApp extends StatelessWidget {
+//   @override
+//   Widget build(BuildContext context) {
+//     return MaterialApp(
+//       title: 'Flutter Demo',
+//       theme: ThemeData(
+//         primarySwatch: Colors.blue,
+//         visualDensity: VisualDensity.adaptivePlatformDensity,
+//       ),
+//       home: Home(),
+//     );
+//   }
+// }
+
+class MyHomePage extends StatefulWidget {
+  MyHomePage({Key key}) : super(key: key);
+
   @override
-  Widget build(BuildContext context) {
+  _MyHomePageState createState() => _MyHomePageState();
+}
+
+class _MyHomePageState extends State<MyHomePage> {
+  Client httpClient;
+
+  RemoteRestaurantsDataProvider remoteRestaurantsDataProvider;
+  RestaurantsRepository restaurantsRepository;
+  RestaurantsBloc restaurantsBloc;
+
+  Widget _buildMaterialApp() {
     return MaterialApp(
       title: 'Flutter Demo',
       theme: ThemeData(
@@ -17,48 +49,39 @@ class MyApp extends StatelessWidget {
       home: Home(),
     );
   }
-}
 
-class MyHomePage extends StatefulWidget {
-  MyHomePage({Key key, this.title}) : super(key: key);
-  final String title;
   @override
-  _MyHomePageState createState() => _MyHomePageState();
-}
+  void initState() {
+    super.initState();
 
-class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
-  void _incrementCounter() {
-    setState(() {
-      _counter++;
-    });
+    httpClient = Client();
+    remoteRestaurantsDataProvider = RemoteRestaurantsDataProvider(
+        baseApiUrl: '$baseApiUrl', httpClient: httpClient);
+
+    restaurantsRepository =
+        RestaurantsRepository(remote: remoteRestaurantsDataProvider);
+
+    restaurantsBloc = RestaurantsBloc(repository: restaurantsRepository);
+
+    restaurantsBloc.add(FetchNearbyRestaurants(
+        latitude: '14.5544485', longitude: '121.0458726'));
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(widget.title),
-      ),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            Text(
-              'You have pushed the button this many times:',
-            ),
-            Text(
-              '$_counter',
-              style: Theme.of(context).textTheme.headline4,
-            ),
-          ],
+    return MultiBlocProvider(
+      providers: <BlocProvider<Bloc<dynamic, dynamic>>>[
+        BlocProvider<RestaurantsBloc>(
+          create: (BuildContext context) => restaurantsBloc,
         ),
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: Icon(Icons.add),
-      ),
+      ],
+      child: _buildMaterialApp(),
     );
+  }
+
+  @override
+  void dispose() {
+    restaurantsBloc.close();
+    super.dispose();
   }
 }
