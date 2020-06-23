@@ -47,8 +47,8 @@ class Restaurant {
 
   String get address => location.address ?? '';
   double get popularityScore =>
-      double.parse(userRating.aggregateRating ?? '0') *
-      double.parse(userRating.votes ?? '0');
+      double.parse(userRating.aggregateRating ?? '0.0') *
+      double.parse(userRating.votes ?? '0.0');
 
   String get aveerageCost => '${currency ?? ''}${averageCostForTwo ?? ''}';
 }

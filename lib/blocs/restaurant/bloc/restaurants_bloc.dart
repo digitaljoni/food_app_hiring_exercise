@@ -22,10 +22,10 @@ class RestaurantsBloc extends Bloc<RestaurantsEvent, RestaurantsState> {
     RestaurantsEvent event,
   ) async* {
     if (event is FetchNearbyRestaurants) {
-      final String latitude = event.latitude;
-      final String longitude = event.longitude;
+      final latitude = event.latitude;
+      final longitude = event.longitude;
 
-      final RestaurantsByGeocode restaurantsByGeocode =
+      final restaurantsByGeocode =
           await repository.fetchRestaurantsByGeocode(latitude, longitude);
 
       yield NearbyRestaurantsFetched(restaurantsByGeocode);
